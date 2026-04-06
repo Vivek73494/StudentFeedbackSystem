@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page faculty-login-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="glass-login-card">
+        <h1 class="login-title">Faculty Login</h1>
+        <form method="POST" action="/faculty/login" autocomplete="off">
+            <input type="text" style="display:none">
+            <input type="password" style="display:none">
+            <div class="input-group">
+                <input type="text" name="username" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        <a href="/" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html>

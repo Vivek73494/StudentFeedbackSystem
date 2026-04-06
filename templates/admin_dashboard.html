@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-dashboard-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+        <div class="dashboard-content">
+            <div class="admin-section">
+                <h2>Add Course</h2>
+                <form action="/add_course" method="POST">
+                    <input type="text" name="course_name" placeholder="Course Name" required>
+                    <input type="text" name="course_code" placeholder="Course Code" required>
+                    <button type="submit">Add Course</button>
+                </form>
+            </div>
+            
+            <div class="admin-section">
+                <h2>Add Student</h2>
+                <form action="/add_student" method="POST">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="text" name="student_name" placeholder="Student Name" required>
+                    <input type="email" name="student_email" placeholder="Email" required>
+                    <input type="text" name="roll_number" placeholder="Roll Number" required>
+                    <button type="submit">Add Student</button>
+                </form>
+            </div>
+            
+            <div class="admin-section">
+                <h2>Add Faculty</h2>
+                <form action="/add_faculty" method="POST">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="text" name="faculty_name" placeholder="Faculty Name" required>
+                    <input type="email" name="faculty_email" placeholder="Email" required>
+                    <input type="text" name="department" placeholder="Department" required>
+                    <button type="submit">Add Faculty</button>
+                </form>
+            </div>
+            
+            <div class="admin-section">
+                <h2>Add Feedback Question</h2>
+                <form action="/add_question" method="POST">
+                    <input type="text" name="question_text" placeholder="Question Text" required>
+                    <select name="question_type" required>
+                        <option value="">-- Question Type --</option>
+                        <option value="rating">Rating</option>
+                        <option value="text">Text</option>
+                    </select>
+                    <button type="submit">Add Question</button>
+                </form>
+            </div>
+            
+            {% if questions %}
+            <div class="admin-section">
+                <h2>Existing Feedback Questions</h2>
+                {% for question in questions %}
+                <div style="padding:10px;margin:10px;background:#f5f5f5;border-radius:5px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <p><strong>Question:</strong> {{ question.question_text }}</p>
+                        <p><strong>Type:</strong> {{ question.question_type }}</p>
+                    </div>
+                    <form method="POST" action="/admin/delete_question/{{ question._id }}" style="display:inline;">
+                        <button type="submit" style="background:red;color:white;border:none;padding:8px 15px;cursor:pointer;border-radius:5px;" onclick="return confirm('Are you sure you want to delete this question?');">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="admin-section" id="feedback-section">
+                <h2>All Student Feedback</h2>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <form action="/admin/dashboard#feedback-section" method="GET" class="filter-form">
+                        <div class="filter-group">
+                            <label for="course_filter">Filter by Course:</label>
+                            <select name="course_filter" id="course_filter">
+                                <option value="all" {% if not selected_course or selected_course == 'all' %}selected{% endif %}>All Courses</option>
+                                {% for course in courses %}
+                                    <option value="{{ course.course_code }}" {% if selected_course == course.course_code %}selected{% endif %}>
+                                        {{ course.course_name }} ({{ course.course_code }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="filter-btn">Filter</button>
+                        </div>
+                    </form>
+                </div>
+                
+                {% if all_feedback %}
+                <div class="feedback-table-container">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th>Student Username</th>
+                                <th>Course Name</th>
+                                <th>Faculty Name</th>
+                                <th>Rating</th>
+                                <th>Comments</th>
+                                <th>Submission Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in all_feedback %}
+                            <tr>
+                                <td>{{ feedback.student_username }}</td>
+                                <td>{{ feedback.course_name }}</td>
+                                <td>{{ feedback.faculty_name }}</td>
+                                <td>{{ feedback.rating }}</td>
+                                <td>
+                                    {% if feedback.answers %}
+                                        {% for answer in feedback.answers %}
+                                            {% if answer.question != 'Rate this course' %}
+                                                <div style="margin-bottom:8px;">
+                                                    <strong>{{ answer.question }}:</strong> {{ answer.answer }}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        No comments
+                                    {% endif %}
+                                </td>
+                                <td>{{ feedback.submitted_at.strftime('%Y-%m-%d %H:%M') if feedback.submitted_at else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="no-feedback">No feedback found for the selected filter.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        // Auto-hide flash messages after 2.5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash');
+            flashMessages.forEach(function(msg) {
+                msg.style.transition = "opacity 0.5s";
+                msg.style.opacity = "0";
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 2500);
+        
+        // Auto-scroll to feedback section when filter is applied
+        window.addEventListener('load', function() {
+            if (window.location.hash === '#feedback-section') {
+                setTimeout(function() {
+                    document.getElementById('feedback-section').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

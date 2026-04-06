@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="student-dashboard-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container">
+        <div class="header">
+            <h1>Student Dashboard</h1>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+        <div class="dashboard-content">
+            <h2>Submit Course Feedback</h2>
+            {% if courses and questions %}
+            <form method="POST" action="/submit_feedback">
+                <div style="margin-bottom:20px;">
+                    <label><strong>Select Course:</strong></label><br>
+                    <select name="course_code" required style="width:100%;padding:10px;margin-top:5px;">
+                        <option value="">-- Select a Course --</option>
+                        {% for course in courses %}
+                        <option value="{{ course['course_code'] }}">{{ course['course_name'] }} ({{ course['course_code'] }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% for question in questions %}
+                <div style="margin-bottom:15px;">
+                    <label><strong>{{ loop.index }}. {{ question.question_text or question.question }}</strong></label><br>
+                    {% if question.question_type == 'rating' %}
+                    <select name="answer_{{ loop.index }}" required style="width:300px;padding:5px;">
+                        <option value="">-- Select Rating --</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                    {% else %}
+                    <input type="text" name="answer_{{ loop.index }}" required style="width:300px;padding:5px;" placeholder="Enter your answer">
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit">Submit Feedback</button>
+            </form>
+            {% elif not courses %}
+            <p style="color:#888;padding:20px;">No courses available yet. Please contact admin to add courses.</p>
+            {% elif not questions %}
+            <p style="color:#888;padding:20px;">No feedback questions available yet. Please check back later.</p>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        // Auto-hide flash messages after 2.5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash');
+            flashMessages.forEach(function(msg) {
+                msg.style.transition = "opacity 0.5s";
+                msg.style.opacity = "0";
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 2500);
+    </script>
+</body>
+</html>

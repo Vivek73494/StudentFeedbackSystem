@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .feedback-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #4facfe;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .feedback-card ul {
+            margin-top: 10px;
+            padding-left: 20px;
+            list-style: none;
+        }
+        .feedback-card li {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .feedback-card strong {
+            color: #333;
+        }
+        .faculty-info {
+            background: linear-gradient(135deg, #4facfe, #a18cd1);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="faculty-dashboard-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container">
+        <div class="header">
+            <h1>Faculty Dashboard</h1>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+        {% if faculty %}
+        <div class="faculty-info">
+            <p><strong>Name:</strong> {{ faculty.name }}</p>
+            <p><strong>Course:</strong> {{ faculty.course_name }} ({{ faculty.course_code }})</p>
+        </div>
+        {% endif %}
+        <div class="dashboard-content">
+            <h2>Student Feedback for {{ faculty.course_name if faculty else 'Your Course' }}</h2>
+            <div class="feedback-list">
+                {% if feedback %}
+                    {% for fb in feedback %}
+                    <div class="feedback-card">
+                        <p><b>Student:</b> {{ fb.student_username }}</p>
+                        <p><b>Course Code:</b> {{ fb.course_code }}</p>
+                        <p><b>Rating:</b> {{ fb.rating }}/5</p>
+                        
+                        <b>Feedback:</b>
+                        <ul>
+                            {% for ans in fb.answers %}
+                            <li>
+                                <strong>{{ ans.question }}</strong><br>
+                                Answer: {{ ans.answer }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <small style="color:#888;">{{ fb.submitted_at }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-feedback">No feedback available for your course yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        // Auto-hide flash messages after 2.5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash');
+            flashMessages.forEach(function(msg) {
+                msg.style.transition = "opacity 0.5s";
+                msg.style.opacity = "0";
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 2500);
+    </script>
+</body>
+</html>
