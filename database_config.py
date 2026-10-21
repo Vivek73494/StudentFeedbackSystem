@@ -1,10 +1,10 @@
-# MongoDB Configuration
+import os
 from pymongo import MongoClient
 
 class DatabaseConfig:
     # MongoDB connection settings
-    MONGO_URI = "mongodb://localhost:27017/"
-    DATABASE_NAME = "student_feedback_db"
+    MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+    DATABASE_NAME = os.environ.get("DATABASE_NAME", "student_feedback_db")
     
     @staticmethod
     def get_database():
